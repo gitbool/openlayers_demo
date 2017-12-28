@@ -1,0 +1,139 @@
+<!Doctype html>
+<html xmlns=http://www.w3.org/1999/xhtml>
+<head>                  
+    <meta http-equiv=Content-Type content="text/html;charset=utf-8">
+    <meta http-equiv=X-UA-Compatible content="IE=edge,chrome=1">
+    <meta content=always name=referrer>
+    <title>设置地图显示范围</title>
+    <link href="https://openlayers.org/en/v4.6.4/css/ol.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="https://openlayers.org/en/v4.6.4/build/ol.js" charset="utf-8"></script>
+</head>
+
+<body>
+    <h1>地图1</h1>
+   <div id="map" style="width: 40%; height: 40%;"></div>
+  <!--  <input type="button" value="左移" onclick="defineDerection(103.7, 30);" />
+   <input type="button" value="右移" onclick="defineDerection(104.2, 30);" /> -->
+
+  <input type="button" value="创建图标对象" onclick="createIcon();" />
+
+<script type="text/javascript">
+
+  var defaulgSrc = './monkey.png';
+
+
+  function createIcon(){
+    removeAllFeatures();
+
+    var feature1 = createFeatureAndStyle([104 + createRandom(), 30 + createRandom()],null, 'monkey1');
+    var feature2 = createFeatureAndStyle([104 + createRandom(), 30 + createRandom()],null, 'monkey2');
+    layer.getSource().addFeature(feature1);
+    layer.getSource().addFeature(feature2);
+  }
+
+  function createRandom(){
+    var num = Math.abs((Math.random()/2 - 0.5)/1.0) + 0.1;
+    return num;
+  }
+
+  function defineDerection(x, y){
+    // layer.setCenter([x,y]);
+
+    console.log(layer.getSource().getFeatures().length);
+
+    var feature = layer.getSource().getFeatures()[0];
+  
+    var feature1 = layer.getSource().getFeatures()[1];
+
+    console.log("src0", feature.getStyle().getImage().getSrc());
+    console.log("src1", feature1.getStyle().getImage().getSrc());
+
+    // console.log('before', layer.getSource().getFeatures());
+    feature.setGeometry(new ol.geom.Point([x, y]));
+    // console.log('after', layer.  ().getFeatures());
+  } 
+
+
+  function removeAllFeatures(){
+    layer.getSource().clear();
+  }
+
+
+  var myView = new ol.View({
+      projection: 'EPSG:4326',
+      center: [104, 30],
+      zoom: 10
+    });
+
+  var layer = new ol.layer.Vector({
+    source: new ol.source.Vector()
+  })
+  var map = new ol.Map({
+    layers: [
+      new ol.layer.Tile({
+        source: new ol.source.OSM()
+      }), 
+      layer
+    ],
+    target: 'map',
+    view: myView
+  });
+
+
+  function createFeatureAndStyle(arr2demition, defineSrc, text){
+    var feature = createFeature(arr2demition);
+    var style = createStyle(defineSrc, text);
+    feature.setStyle(style);
+    return feature;
+  }
+
+  function createFeature(arr2demition){
+    var anchor = new ol.Feature({
+      geometry: new ol.geom.Point(arr2demition)
+    });
+    return anchor;
+  }
+
+  function createStyle(defineSrc, defineText){
+    if(!defineSrc){
+      defineSrc = defaulgSrc;
+    }
+    var style = new ol.style.Style({
+        image: new ol.style.Icon({
+          // src: './monkey.png'
+          src: defineSrc,
+        }),
+        text : new ol.style.Text({
+            text : defineText,
+            fill : new ol.style.Fill({
+              // color : 'black'
+            })
+        })
+    });
+    return style;
+  }
+
+  map.getView().on('change:resolution', function(){
+    var features = layer.getSource().getFeatures();
+      for (var i = 0; i < features.length; i++) {
+        var anchor =features[i];
+        var style = anchor.getStyle();
+      // 重新设置图标的缩放率，基于层级10来做缩放
+        style.getImage().setScale(this.getZoom() / 20);
+         // style.getImage().setScale(10);
+        anchor.setStyle(style);
+      }
+  })
+
+  map.addEventListener('click',function(event){
+    // console.log('you clicked');
+    // var coordinate = ol.proj.transform(event.coordinate, 'EPSG:3857', 'EPSG:4326');
+    // console.log('您点击的坐标为： ', coordinate);
+    console.log('您点击的坐标为： ', event.coordinate);
+  });
+
+</script>
+
+</body>
+  
+</html>
